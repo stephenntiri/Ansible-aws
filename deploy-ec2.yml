@@ -6,16 +6,16 @@
   tasks:
     - name: Create webserver ec2 instances
       ec2:
-        key_name: "{{ key_pair }}"
+        key_name: webserver_test
         region: "{{ aws_region }}"
-        instance_type: "{{ instance_type }}"
+        instance_type: t1.micro 
         image: "{{ foundation_ami }}"
-        group_id: "{{ security_group }}"
+        group_id: sg-39be1242
         wait: yes
         wait_timeout: 500
         instance_tags:
           Name: "{{product}}_{{env}}_{{component}}"
           Environment: "{{ env }}"
 #        vpc_subnet_id: "{{ vpc.subnets | get_subnets('tier','web') | first }}"
-        vpc_subnet_id: "{{ subnet_to_deployto }}"
+        vpc_subnet_id: subnet-580e6072 
         assign_public_ip: yes
