@@ -17,5 +17,6 @@
           Name: webserver 
           Env: sharedservices
         vpc_subnet_id: subnet-580e6072
+	volumes:
         volume_size: 40
         assign_public_ip: no
