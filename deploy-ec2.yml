@@ -1,0 +1,21 @@
+--- # deploy a single ec2 instance running RHEL and Apache
+- hosts: localhost
+  gather_facts: true
+  connection: local
+    
+  tasks:
+    - name: Create webserver ec2 instances
+      ec2:
+        key_name: "{{ key_pair }}"
+        region: "{{ aws_region }}"
+        instance_type: "{{ instance_type }}"
+        image: "{{ foundation_ami }}"
+        group_id: "{{ security_group }}"
+        wait: yes
+        wait_timeout: 500
+        instance_tags:
+          Name: "{{product}}_{{env}}_{{component}}"
+          Environment: "{{ env }}"
+#        vpc_subnet_id: "{{ vpc.subnets | get_subnets('tier','web') | first }}"
+        vpc_subnet_id: "{{ subnet_to_deployto }}"
+        assign_public_ip: yes

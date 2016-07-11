@@ -1,0 +1,13 @@
+---
+# vars file for ec2
+prefix: "cmso"
+env: development
+mgt_vpc: vpc-df6892b8 # Management vpc
+aws_region: us-east-1
+instancetype: t2.large
+foundation_ami: ami-2051294a # RHEL HVM from AMI Marketplace
+target-subnet: subnet-580e6072
+securitygroup: sg-39be1242
+keyname: webserver_test
+ebs_volumesize: 40
+publicip: no

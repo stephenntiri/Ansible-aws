@@ -1,0 +1,12 @@
+---
+prefix: "pacts"
+env: "development"
+application: pacts
+cidr: 10.0.0/16
+public_subnet: 10.0.1.0/24
+private_subnet: 10.0.1.20/24
+public_subnet_az: us-east-1a
+private_subnet_az: us-east-1a
+default_aws_region: us-east-1
+mgt_vpc: vpc-df6892b8
+key_pair: webserver_test

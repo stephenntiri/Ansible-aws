@@ -1,0 +1,176 @@
+---
+# This playbook is an omnibus playbook that:
+  # - launches and configures a dev vpc
+  # - launches a jboss and informix instance for legacy PACTS
+  # - launches app server for gen3
+  # - creates peering request from dev to mgt vpc 
+
+  - name: Set up development vpc
+    hosts: localhost
+    connection: local
+    gather_facts: yes
+
+    pre_tasks:
+    - include_vars: vars/vpc.yml
+
+    tasks: 
+      - name: create VPC with public and private subnet
+        ec2_vpc:
+          state: present
+          cidr_block: "{{ cidr }}"
+          resource_tags: { "Name":"{{prefix}}-{{env}}-03","Environment":"Development" }
+          subnets:
+            - cidr: "{{ public_subnet }}"
+              az: "{{ public_subnet_az }}"
+              resource_tags: { "Name":"pacts-dev03-public","Subnet":"Public" }
+            - cidr: "{{ private_subnet }}"
+              az: "{{ private_subnet_az }}"
+              resource_tags: { "Name":"pacts-dev03-private","Subnet":"Private" }
+          internet_gateway: True
+          route_tables:
+            - subnets:
+                - "{{ public_subnet }}"
+              routes:
+                - dest: 0.0.0.0/0
+                  gw: igw
+            - subnets:
+                - "{{ private_subnet }}"
+              routes:
+                - dest: 0.0.0.0/0
+                  gw: igw
+
+          region: "{{ default_aws_region }}"
+        register: vpc
+      - debug: var=vpc
+      - name: Generate peering request to management vpc
+        shell: aws ec2 create-vpc-peering-connection --vpc-id {{ vpc.vpc_id }} --peer-vpc-id {{ mgt_vpc }} --region {{default_aws_region}} | awk '/(pcx-)\w+/{ print $0 }'
+        environment:
+               AWS_ACCESS_KEY_ID: "{{ lookup('env','AWS_ACCESS_KEY') }}"
+               AWS_SECRET_ACCESS_KEY: "{{ lookup('env','AWS_SECRET_KEY') }}"
+               REGION: "us-east-1"
+        register: peer_request
+      - debug: var=peer_request
+      - name: Modify private subnet
+        ec2_vpc_route_table:
+          vpc_id: '{{ vpc.vpc_id }}'
+          region: '{{ default_aws_region }}'
+          subnets:
+            - "{{ vpc.subnets[1].id }}"
+          routes:
+            - dest: 0.0.0.0/0
+              vpc_peering_connection_id: "{{peer_request.stdout_lines}}"
+      - name: Set vpc security groups
+        ec2_group:
+            name: PACTS App Security Group
+            description: Security group for PACTS app
+            vpc_id: "{{vpc.vpc_id}}"
+            region: us-east-1
+            rules:
+              - proto: all
+                cidr_ip: 54.209.247.222/32
+              - proto: all
+                cidr_ip: 52.91.31.62/32
+              - proto: all
+                cidr_ip: 199.107.16.0/24
+              - proto: all
+                cidr_ip: 63.241.40.0/24
+              - proto: all
+                cidr_ip: 11.201.0.0/16
+              - proto: all
+                cidr_ip: 11.0.0.0/16
+              - proto: all
+                cidr_ip: 52.86.177.186/32
+            rules_egress:
+              - proto: all
+                cidr_ip: 0.0.0.0/0
+        register: sgroup
+      - debug: var=sgroup
+
+      - name: Launch gen3 app server
+        tags:
+          - launch
+          - launch-gen3-appserver
+        ec2:
+          vpc_subnet_id: "{{vpc.subnets[1].id}}"
+          region: us-east-1
+          group_id: "{{sgroup.group_id}}"
+          key_name: cmso_compliance
+          instance_type: t2.medium
+          instance_tags:
+            Name: "oteemo-{{ prefix }}-{{env}}-gen3appsvr02"
+            environment: "{{env}}"
+          image: ami-9ec8def4
+          assign_public_ip: yes
+          wait: yes
+        register: gen3appsvr
+      - wait_for: host={{inventory_hostname}} port=22 delay=60 timeout=320 state=started
+      - debug: var=gen3appsvr
+
+      - name: Launch informix db server
+        tags:
+          - launch
+          - launch-informix-dbserver
+        ec2:
+          vpc_subnet_id: "{{vpc.subnets[1].id}}"
+          region: us-east-1
+          group_id: "{{sgroup.group_id}}"
+          key_name: cmso_compliance
+          instance_type: t2.large
+          instance_tags:
+            Name: "oteemo-{{ prefix }}-{{env}}-informix02"
+            environment: "{{env}}"
+          image: ami-3cb2a156
+          assign_public_ip: yes
+          wait: yes
+        register: dbsrv
+      - debug: var=dbsrv
+      - set_fact: 
+          informix_dbserver_ipaddress: dbsrv.private_ip_address
+          gen3_staff_url: https://52.4.142.97:8443
+
+      - debug: msg=informix-dbserver-ipaddress -- {{informix_dbserver_ipaddress}}. gen3_staff_url -- {{gen3_staff_url}}
+      
+      - name: Start Jboss instance from foundation AMI
+        tags:
+          - launch
+          - launch-jboss-server
+        ec2:
+          vpc_subnet_id: "{{vpc.subnets[1].id}}"
+          region: us-east-1
+          group_id: "{{sgroup.group_id}}"
+          key_name: cmso_compliance
+          instance_type: t2.large
+          instance_tags:
+            Name: "oteemo-{{ prefix }}-{{env}}-jboss02"
+            environment: "{{env}}"
+          image: ami-c8b2a1a2
+          assign_public_ip: yes
+          wait: yes
+        register: appsrv
+      - debug: var=appsrv
+      - set_fact:
+          jboss_server_public_ip: "{{appsrv.public_ip}}"
+      - local_action: wait_for host={{ appsrv.public_ip }} port=8080 delay=60 timeout=3200 state=started
+
+      - name: Copy latest package from s3
+        s3: 
+          bucket: "{{bucket_name}}" 
+          object: "{{filename_to_download}}" 
+          dest: "{{destination_dir}}/{{src_filename}}"  
+          s3_url: "{{amazon_s3_url}}" 
+          mode: get
+
+      - name: Configure JBoss pactsecm.ini
+        template:
+          src: roles/legacy-pacts/templates/pactsecm.ini.j2
+          dest: /opt/jboss-app1/current/server/production/conf/pactsg3/pactsecm.ini
+        
+      - name: Configure JBoss pactsg3.xml
+        template:
+            src: roles/legacy-pacts/templates/pactsg3.xml.j2
+            dest: /opt/jboss-app1/current/server/production/deploy/pactsg3-ds.xml
+
+
+
+
+      

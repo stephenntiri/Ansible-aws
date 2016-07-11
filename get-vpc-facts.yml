@@ -1,0 +1,16 @@
+--- # Get VPC Facts
+- hosts: localhost
+  connection: local
+  gather_facts: true
+
+  vars:
+    vpcid: vpc-8f9eaceb
+
+  tasks:
+    - name: Gather VPC facts
+      ec2_vpc_net_facts:
+        region: 
+           us-east-1
+        filters:
+           vpc-id: "{{ vpcid }}"
+      tag: deployment

@@ -1,0 +1,12 @@
+--- #inject authorized keys
+  - name: Add keys to hosts
+    hosts: "{{hosts_to_apply}}"
+    connection: local
+    gather_facts: no
+    
+  #  pre_tasks:
+  #    - include_vars: vars/authkeys.yml
+
+    tasks:
+      - name: Insert key into authorized_users
+        authorized_key: user=ec2-user key="{{authkey}}"

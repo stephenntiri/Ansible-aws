@@ -1,0 +1,18 @@
+---
+# tasks file for ec2
+    - name: Launch ec2 instance in development vpc
+        ec2:
+          vpc_subnet_id: "{{target-subnet}}"
+          group: "{{ securitygroup }}"
+          key_name: "{{ keyname }}"
+          instance_type: "{{instancetype}}"
+          instance_tags:
+            Name: "{{ prefix }}-{{env}}-app01"
+            environment: "{{env}}"
+          image: "{{ foundation_ami }}"
+          assign_public_ip: {{publicip}}
+        register: ec2
+        ec2_vol:
+          instance: "{{ item.id }}"
+          volume_size: "{{ebs_volumesize}}"
+        with_items: ec2.instances

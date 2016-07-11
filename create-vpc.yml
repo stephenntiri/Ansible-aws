@@ -1,0 +1,91 @@
+---
+- name: setup vpc
+  hosts: localhost
+  gather_facts: true
+  sudo_user: false
+#  environment:
+#     AWS_ACCESS_KEY_ID: "{{ lookup('env','AWS_ACCESS_KEY') }}"
+#     AWS_SECRET_ACCESS_KEY: "{{ lookup('env','AWS_SECRET_KEY') }}"
+
+  pre_tasks:
+    - include_vars: ../vars/vpc.yml
+  tasks:
+    - name: create VPC with public and private subnet
+      ec2_vpc:
+        state: present
+        cidr_block: '{{ cidr }}'
+        resource_tags: { "Name":"USCourts-test-vpc","Environment":"Development" }
+        subnets:
+          - cidr: '{{ public_subnet }}'
+            az: '{{ public_subnet_az }}'
+            resource_tags: { "Name":"test-vpc-public","Subnet":"Public" }
+          - cidr: '{{ private_subnet }}'
+            az: '{{ private_subnet_az }}'
+            resource_tags: { "Name":"test-vpc-private","Subnet":"Private" }
+        internet_gateway: True
+        route_tables:
+          - subnets:
+              - '{{ public_subnet }}'
+            routes:
+              - dest: 0.0.0.0/0
+                gw: igw
+          - subnets:
+              - '{{ private_subnet }}'
+            routes:
+              - dest: 0.0.0.0/0
+                gw: igw
+        region: '{{ default_aws_region }}'
+      register: vpc
+
+- name: setup nat gateway
+  hosts: localhost
+  roles:
+    - nat-gateway
+
+- name: Change the route for VPC Private Subnet
+  hosts: localhost
+  gather_facts: true
+  sudo_user: false
+  pre_tasks:
+    - include_vars: ../vars/vpc.yml
+
+  tasks:
+    - name: Modify private subnet
+      ec2_vpc_route_table:
+        vpc_id: '{{ vpc.vpc_id }}'
+        region: '{{ default_aws_region }}'
+        subnets:
+          - "{{ lookup('file', '../files/private-subnet') }}"
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ lookup('file', '../files/nat-gateway') }}"
+
+    - name: Spawn dev ec2 instances
+      ec2:
+         keyname: webserver_test
+         instance_type: t1.micro
+         vpc_subnet_id: "{{ lookup('file', '../files/public-subnet') }}"
+         instance_tags: {"Name":"USCourts-dev02-webserver01","Environment":"Development"}
+         image: ami-2c131546
+         wait: yes
+         wait_timeout: 500
+         group: webservers
+         assign_public_ip: yes
+
+    - name: Install app server in private subnet
+      ec2:
+         keyname: webserver_test
+         instance_type: t1.micro
+         vpc_subnet_id: "{{ lookup('file', '../files/private-subnet') }}"
+         instance_tags: {"Name":"USCourts-dev02-appserver01","Environment":"Development"}
+         image: ami-692b2d03
+         wait: yes
+         wait_timeout: 500
+         group: appservers
+         assign_public_ip: no
+
+    - name: Generate peering request to management vpc
+      command: "aws ec2 create-vpc-peering-connection --vpc-id {{ vpc.vpc_id }} --peer-vpc-id {{ mgt_vpc }}"
+      environment:
+             AWS_ACCESS_KEY_ID: "{{ lookup('env','AWS_ACCESS_KEY') }}"
+             AWS_SECRET_ACCESS_KEY: "{{ lookup('env','AWS_SECRET_KEY') }}"
