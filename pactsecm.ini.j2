@@ -1,0 +1,119 @@
+##
+##  -----------------------------------
+##   For UAT NODE ENVIRONMENT
+##
+##  IMPORTANT NOTE: READ THIS CAREFULLY
+##
+##  ABSOLUTELY NO LEADING, TRAILING OR EMBEDDED SPACES, TAB CHARACTERS, OR ANY OTHER WHITE SPACE
+##  (EXCEPT CARRIAGE RETURNS) ARE ALLOWED.
+##
+##  VIOLATION OF THIS RULE WILL HAVE ***UNPREDICTABLE** AND USUALLY GROTESQUE RESULTS.
+##
+##  COMMENT LINES EXCEPTED.
+##
+##  BE CAREFUL IF YOU EDIT THIS FILE.  DOUBLE-CHECK TO ASSURE THAT YOU HAVE NOT LEFT ANY
+##  BLANK CHARACTERS AT THE END OF ANY LINE.
+##  -----------------------------------
+### Unix Server IP address:
+SERVER_IP={{jboss_server_public_ip}}
+
+### Forms Configuration
+ADOBE_FORM_PSX_WEB_SERVICE=https://fppsint.gtwy.dcn:8443/pactsg3/pactsecm/PsxWSProxyServlet/
+ADOBE_FORM_ESB_WEB_SERVICE=https://fppsint.gtwy.dcn:8443/pactsg3/pactsecm/PactsWSProxyServlet/
+PSX_WEB_SERVICE=https://fppsint.gtwy.dcn:8443/pactsg3psxws/
+
+### EPPS Project Document Image Server
+DOC_IMAGE_IP=https://fppsint.gtwy.dcn:8443/pactsg3/dim/
+DOC_IMAGE_FTP=fppsint.gtwy.dcn
+
+### PACTS PSX URL Path
+PSX_URL=https://fppsint.gtwy.dcn:8443/pactsg3psx
+
+### NPR Server info - to be changed from plaintest to encrypted
+NPR_SERVER_PASSWORD=Password123
+
+### Gen3 Front End Url:
+PACTS_GEN3_URL=https://fppsint.gtwy.dcn:8443/pactsg3cdt
+PACTS_GEN3_STAFF_PAGE_URL={{gen3_staff_url}}
+
+######
+###### PSX Properties
+######
+
+CALCULATOR_URL=https://fppsint.gtwy.dcn:8443/offensecalculator-1.11/calculation/begin.seam?
+CALCULATOR_BETA_URL=https://fppsint.gtwy.dcn:8443/offensecalculator?
+CALCULATOR_WSDL=https://fppsint.gtwy.dcn:8443/offensecalculator-1.11-controller-1.11/OffenseCalculationWebService?wsdl
+GUIDELINE_MANUAL_WSDL=https://fppsint.gtwy.dcn:8443/offensecalculator-1.11-controller-1.11/GuidelineManualWebService?wsdl
+### Unix Server IP address:
+SERVER_PORT=8443
+
+#### Debug option -- higher level = more messages:
+##DEBUG_FILE=/var/log/pactsecm/pactsg3_int.log
+
+##### Servlet Zone:
+SERVLET_ZONE=pactsg3
+
+#### Data Directory
+DATA_DIRECTORY=/opt/jboss-app1/current/server/production/data/pactsg3
+
+#### Database:
+dbJndiName=java:pactsg3DS
+dbConnectType=informix-sqli
+dbDriver=com.informix.jdbc.IfxDriver
+dbServerType=informixserver
+dbHostName=156.119.24.221
+dbPortNum=1527
+dbServerName=uspps_devl
+dbName=uspps
+minConns=10
+maxConns=500
+maxConnTime=0.01
+dbLogin=gen3pacts
+dbPassword=nlu:whj{z89:
+
+##logFileString=/var/log/pactsecm/pactsg3_int.dbBroker.log
+
+# default directory for client Photos
+expandedPhotoDirectory=/opt/jboss-app1/current/server/production/data/pactsg3/photos
+
+TEMP_DIR=/tmp
+IGNORE_EDIT=yes
+
+### Drug Test Import Settings
+NTL_ERROR_FILE_DIR=/opt/jboss-app1/current/server/production/data/pactsg3/ntlErrorFiles
+ENABLE_DRUGTEST_DOWNLOAD=YES
+
+### EPPS Project Document Image Server
+DOC_LOCAL_DIR=docImageMod
+DOC_UPLOAD_DIR=/opt/jboss-app1/current/server/production/data/pactsg3/work
+DOC_WORK_DIR=/opt/jboss-app1/current/server/production/data/pactsg3/work
+
+### Temporary work area folder = /opt/jboss/latest/server/pactspactsg3/tmp/[district acronym]/  (e.g. /opt/jboss/latest/server/pactspactsg3/tmp/cas/)
+USSC_TEMP_WORK_AREA_DIR=/opt/jboss-app1/current/server/production/data/pactsg3/work
+
+MY_PATH=/opt/jboss-app1/current/server/production/conf/pactsg3
+
+### ADA/ADM/Limited Menu Pacts
+PACTS_LIMITED_MENU_URL=https://fppsinta.gtwy.dcn:8443/pactsg3ada/loginprocess/limitedMenuLogin.jsp
+### Should be true or false in all lower case
+SHOW_LIMITED_MENUS=false
+### Comma delimited list
+LIMITED_MENU_LIST=dataExtractionsFolder,advDataAdminFolder
+
+KEY=My Shared Pass
+
+######
+###### PSX Properties
+######
+--Is this still used?  A quick search of PSX code, it appears not to be.
+DB_UNIT_NAME=psx-informix
+CALCULATOR_WS_QNAME=http://webservices.offensecalculator.ao.usc.gov/
+
+PORTFOLIO_VERSION=1.12
+ESB_VERSION=1.12
+HELP_VERSION=1.3
+PACTS_REL_DATE=2/28/2016
+
+##  -----------------------------------
+##### EOF pactsecm.ini
+##  -----------------------------------         

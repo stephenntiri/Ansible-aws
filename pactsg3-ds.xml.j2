@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE datasources
+    PUBLIC "-//JBoss//DTD JBOSS JCA Config 1.5//EN"
+        "http://www.jboss.org/j2ee/dtd/jboss-ds_1_5.dtd">
+<datasources>
+
+   <local-tx-datasource>
+
+      <jndi-name>pactsg3DS</jndi-name>
+
+      <!-- Connection Settings -->
+      <connection-url>jdbc:informix-sqli://{{informix-dbserver-ipaddress}}:1527/uspps_devl:INFORMIXSERVER=cmso_devl</connection-url>  
+      <driver-class>com.informix.jdbc.IfxDriver</driver-class>
+
+      <!-- Credentials -->
+      <user-name>gen3pacts</user-name>
+      <password>gen3pacts123</password>
+
+      <!-- Connection Pool Settings -->
+      <min-pool-size>10</min-pool-size>
+      <max-pool-size>500</max-pool-size>
+      <idle-timeout-minutes>10</idle-timeout-minutes>
+
+      <check-valid-connection-sql>select circuit_district from local</check-valid-connection-sql>
+      <track-statements>false</track-statements>
+
+      <!-- Meta Data -->
+      <type-mapping>informix</type-mapping>
+   </local-tx-datasource>
+
+   <local-tx-datasource>
+
+      <jndi-name>pactsg3psxDatasource</jndi-name>
+
+      <!-- Connection Settings -->
+      <connection-url>jdbc:informix-sqli://{{informix-dbserver-ipaddress}}:1527/uspps_devl:INFORMIXSERVER=cmso_devl</connection-url>
+      <driver-class>com.informix.jdbc.IfxDriver</driver-class>
+
+      <!-- Credentials -->
+      <user-name>gen3psx</user-name>
+      <password>gen3psx123</password>
+
+      <!-- Connection Pool Settings -->
+      <min-pool-size>10</min-pool-size>
+      <max-pool-size>500</max-pool-size>
+      <idle-timeout-minutes>10</idle-timeout-minutes>
+
+      <check-valid-connection-sql>select circuit_district from local</check-valid-connection-sql>
+      <track-statements>false</track-statements>
+
+      <!-- Meta Data -->
+      <type-mapping>informix</type-mapping>
+   </local-tx-datasource>
+
+   <local-tx-datasource>
+
+        <jndi-name>pactsg3psxCMECFDatasource</jndi-name>
+        <connection-url>jdbc:sqlserver://156.119.24.137:1433;DatabaseName=CM_ECF</connection-url>
+        <driver-class>com.microsoft.sqlserver.jdbc.SQLServerDriver</driver-class>
+        <user-name>CMECF_user</user-name>
+        <password>uscourts</password>
+        <check-valid-connection-sql>SELECT 1 FROM sysobjects</check-valid-connection-sql>
+        <metadata>
+          <type-mapping>MS SQLSERVER2000</type-mapping>
+        </metadata>
+  </local-tx-datasource>
+
+</datasources>
