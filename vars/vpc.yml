@@ -1,12 +1,19 @@
 ---
 prefix: "pacts"
-env: "development"
+env: "envteam-development"
 application: pacts
-cidr: 10.0.0/16
-public_subnet: 10.0.1.0/24
-private_subnet: 10.0.1.20/24
+cidr: 10.20.0/16
+public_subnet: 10.20.1.0/24
+private_subnet: 10.20.2.20/24
 public_subnet_az: us-east-1a
 private_subnet_az: us-east-1a
 default_aws_region: us-east-1
-mgt_vpc: vpc-df6892b8
 key_pair: webserver_test
+
+jboss_ami: ami-a4b345c9
+informix_ami: ami-dd7c6fb7
+
+# Bucket to retrieve Legacy PACTS and Pacts g3
+bucket_name: envteams3upload
+filename_to_download: pactsg3.ear
+destination_dir: /opt/jboss-app1/current/server/production/deploy
